@@ -19,14 +19,16 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectBindingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link UniFiProtectNvrDevice}
  *
  * @author Joseph (Seaside) Hagberg - Initial contribution
  */
-@NonNullByDefault
 public class UniFiProtectNvrDevice {
+    @NonNullByDefault
 
     private static final String LEFT_RIGHT_B_REGEX = "\\]|\\[";
     private String mac = UniFiProtectBindingConstants.EMPTY_STRING;
@@ -60,6 +62,7 @@ public class UniFiProtectNvrDevice {
     private Boolean enableCrashReporting = Boolean.FALSE;
     private Boolean disableAudio = Boolean.FALSE;
     private UniFiProtectSystemInfo systemInfo = new UniFiProtectSystemInfo();
+    private final Logger logger = LoggerFactory.getLogger(UniFiProtectNvrDevice.class);
 
     @Override
     public String toString() {
@@ -369,7 +372,13 @@ public class UniFiProtectNvrDevice {
     }
 
     public Double getCpuAverageLoad() {
-        return getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null;
+        try {
+            logger.debug("getCpuAverageLoad didn't throw an error.");
+            return getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null;
+        } catch (Exception getCpuAverageLoadException) {
+            logger.debug("getCpuAverageLoadException: {}", getCpuAverageLoadException);
+            return 0.0;
+        }
     }
 
     @SuppressWarnings("null")
