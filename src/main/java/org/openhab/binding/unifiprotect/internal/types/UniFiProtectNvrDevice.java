@@ -372,15 +372,7 @@ public class UniFiProtectNvrDevice {
     }
 
     public Double getCpuAverageLoad() {
-        try {
-            logger.debug("getCpuAverageLoad didn't throw an error.");
-            logger.debug("getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null; = {}",
-                    getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null);
-            return getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null;
-        } catch (Exception getCpuAverageLoadException) {
-            logger.debug("getCpuAverageLoadException: {}", getCpuAverageLoadException);
-            return 0.0;
-        }
+        return getSystemInfo().getCpu() != null ? getSystemInfo().getCpu().getAverageLoad() : null;
     }
 
     @SuppressWarnings("null")
