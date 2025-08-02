@@ -145,14 +145,17 @@ public class UniFiProtectEventWebSocket {
     }
 
     public synchronized void dispose() {
-        try {
-            session.close();
-            session = null;
-        } catch (Exception x) {
+        if (session != null) {
             try {
-                session.disconnect();
+                session.close();
                 session = null;
-            } catch (IOException e) {
+            } catch (Exception x) {
+                try {
+                    session.disconnect();
+                    session = null;
+                } catch (IOException e) {
+                    // Ignore
+                }
             }
         }
     }
