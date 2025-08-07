@@ -113,7 +113,7 @@ public class UniFiProtectEventManager implements PropertyChangeListener {
             cancelReinitFuture();
             socket = null;
         } catch (Exception e) {
-            logger.debug("Failed to stop manager", e);
+            logger.debug("Failed to stop manager, 'e' = {}", e);
         }
     }
 

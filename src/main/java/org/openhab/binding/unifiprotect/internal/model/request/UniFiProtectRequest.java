@@ -168,6 +168,19 @@ public abstract class UniFiProtectRequest {
         try {
             logger.debug(">> {} {}", request.getMethod(), request.getURI());
             response = request.send();
+            logger.debug(">> response = {}", response);
+            ContentResponse resp;
+            if (logger.isDebugEnabled() && (resp = response) != null) {
+                List<String> headers = resp.getHeaders().stream().map((h) -> h.toString()).toList();
+                String content = resp.getContentAsString();
+                if (content != null && !content.isBlank()) {
+                    logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(), String.join(", ", headers),
+                            content);
+                } else {
+                    logger.debug("<< {} {} ({}): no content", resp.getStatus(), resp.getReason(),
+                            String.join(", ", headers));
+                }
+            }
         } catch (TimeoutException e) {
             return new UniFiProtectStatus(SendStatus.TIMEOUT, e);
         } catch (InterruptedException e) {
@@ -175,7 +188,7 @@ public abstract class UniFiProtectRequest {
         } catch (ExecutionException e) {
             return new UniFiProtectStatus(SendStatus.EXECUTION_FAULT, e);
         } catch (Exception x) {
-            logger.debug("Unexpected exception: {}", x.getMessage(), x);
+            logger.warn("Unexpected exception: {}", x.getMessage(), x);
         }
         return RESPONSE_STATUS_OK;
     }

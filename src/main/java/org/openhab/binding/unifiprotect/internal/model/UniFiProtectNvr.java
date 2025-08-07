@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.WWWAuthenticationProtocolHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectIrMode;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectLcdMessage;
@@ -93,10 +92,10 @@ public class UniFiProtectNvr {
     public boolean init() {
         try {
             httpClient.start();
-            httpClient.getProtocolHandlers().remove(WWWAuthenticationProtocolHandler.NAME);
+            // httpClient.getProtocolHandlers().remove(WWWAuthenticationProtocolHandler.NAME);
             logger.info("Initializing the binding, with config: {}", getConfig());
         } catch (Exception e) {
-            logger.error("Failed to start binding: ", e);
+            logger.error("Failed to start binding, e = {}", e);
             return false;
         }
         return true;
