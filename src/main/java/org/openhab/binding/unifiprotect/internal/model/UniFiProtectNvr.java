@@ -83,6 +83,8 @@ public class UniFiProtectNvr {
     private final UniFiProtectNvrThingConfig config;
     private final UniFiProtectJsonParser uniFiProtectJsonParser;
 
+    private boolean loginAgain = false;
+
     public UniFiProtectNvr(UniFiProtectNvrThingConfig config) {
         this.config = config;
         httpClient = new HttpClient(new SslContextFactory(true));
@@ -167,15 +169,19 @@ public class UniFiProtectNvr {
         UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
         UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
         if (!requestSuccessFullySent(bootStrapRequestStatus)) {
-            if (request.creditialsExpired()) {
-                logger.debug("Credentials expired, logging in again");
-                UniFiProtectStatus status = login();
-                if (status.getStatus() == SendStatus.SUCCESS) {
-                    request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
-                    bootStrapRequestStatus = request.sendRequest();
-                } else {
-                    return bootStrapRequestStatus;
-                }
+            logger.debug("No response received, logging in again");
+            loginAgain = true;
+        } else if (request.creditialsExpired()) {
+            logger.debug("Credentials expired, logging in again");
+            loginAgain = true;
+        }
+        if (loginAgain) {
+            UniFiProtectStatus status = login();
+            if (status.getStatus() == SendStatus.SUCCESS) {
+                request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
+                bootStrapRequestStatus = request.sendRequest();
+            } else {
+                return bootStrapRequestStatus;
             }
         }
         logger.debug("Request is ok, parsing cameras");

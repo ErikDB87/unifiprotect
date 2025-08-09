@@ -173,12 +173,13 @@ public abstract class UniFiProtectRequest {
             if (logger.isDebugEnabled() && (resp = response) != null) {
                 List<String> headers = resp.getHeaders().stream().map((h) -> h.toString()).toList();
                 String content = resp.getContentAsString();
+                String mediatype = resp.getMediaType();
                 if (content != null && !content.isBlank()) {
-                    logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(), String.join(", ", headers),
-                            content);
+                    logger.debug("<< {} {} ({}) - {}:\n{}", resp.getStatus(), resp.getReason(),
+                            String.join(", ", headers), mediatype, content);
                 } else {
-                    logger.debug("<< {} {} ({}): no content", resp.getStatus(), resp.getReason(),
-                            String.join(", ", headers));
+                    logger.debug("<< {} {} ({} - {}): no content", resp.getStatus(), resp.getReason(),
+                            String.join(", ", headers), mediatype);
                 }
             }
         } catch (TimeoutException e) {
