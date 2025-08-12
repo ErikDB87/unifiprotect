@@ -168,19 +168,30 @@ public abstract class UniFiProtectRequest {
         try {
             logger.debug(">> {} {}", request.getMethod(), request.getURI());
             response = request.send();
-            logger.debug(">> response = {}", response);
-            ContentResponse resp;
-            if (logger.isDebugEnabled() && (resp = response) != null) {
+            ContentResponse resp = response;
+            if (resp == null) {
+                // Should be impossible
+                return new UniFiProtectStatus(SendStatus.EXECUTION_FAULT); // Could be anything, won't happen
+            }
+            if (logger.isDebugEnabled()) {
                 List<String> headers = resp.getHeaders().stream().map((h) -> h.toString()).toList();
                 String content = resp.getContentAsString();
-                String mediatype = resp.getMediaType();
                 if (content != null && !content.isBlank()) {
-                    logger.debug("<< {} {} ({}) - {}:\n{}", resp.getStatus(), resp.getReason(),
-                            String.join(", ", headers), mediatype, content);
+                    logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(), String.join(", ", headers),
+                            content);
                 } else {
-                    logger.debug("<< {} {} ({} - {}): no content", resp.getStatus(), resp.getReason(),
-                            String.join(", ", headers), mediatype);
+                    logger.debug("<< {} {} ({}): no content", resp.getStatus(), resp.getReason(),
+                            String.join(", ", headers));
                 }
+            }
+            int status;
+            if (!HttpStatus.isSuccess(status = resp.getStatus())) {
+                if (status != 401) {
+                    logger.warn("The device responded with an unexpected status: {} - {}", resp.getStatus(),
+                            resp.getReason());
+                    return new UniFiProtectStatus(SendStatus.HTTP_ERROR);
+                }
+                return new UniFiProtectStatus(SendStatus.INVALID_TOKEN);
             }
         } catch (TimeoutException e) {
             return new UniFiProtectStatus(SendStatus.TIMEOUT, e);

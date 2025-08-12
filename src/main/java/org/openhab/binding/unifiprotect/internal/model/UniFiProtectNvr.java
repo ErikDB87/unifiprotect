@@ -450,6 +450,9 @@ public class UniFiProtectNvr {
             case INTERRUPTED:
             case NOT_SENT:
             case TIMEOUT:
+            case TOKEN_MISSING:
+            case HTTP_ERROR:
+            case INVALID_TOKEN:
                 logger.debug("Request failed reason: {} message: {}", status.getStatus().name(), status.getMessage(),
                         status.getException());
                 return false;

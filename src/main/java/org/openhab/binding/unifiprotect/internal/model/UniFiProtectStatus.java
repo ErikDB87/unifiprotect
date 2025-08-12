@@ -38,6 +38,8 @@ public class UniFiProtectStatus {
     private static final String MSG_UNHANDLED_CASE = "Unhandled fault while sending request to UniFi Protect";
     private static final String MSG_NOT_SENT = "Request not sent";
     private static final String MSG_TOKEN_MISSING = "Token is missing";
+    private static final String MSG_INVALID_TOKEN = "Token is invalid";
+    private static final String MSG_HTTP_ERROR = "Unhandled HTTP error";
 
     private final SendStatus status;
     private final @Nullable Exception exception;
@@ -66,7 +68,9 @@ public class UniFiProtectStatus {
         INTERRUPTED,
         NOT_SENT,
         TOKEN_MISSING,
-        EXECUTION_FAULT;
+        EXECUTION_FAULT,
+        HTTP_ERROR,
+        INVALID_TOKEN;
     }
 
     public String getMessage() {
@@ -83,6 +87,10 @@ public class UniFiProtectStatus {
                 return MSG_TIMEOUT;
             case TOKEN_MISSING:
                 return MSG_TOKEN_MISSING;
+            case HTTP_ERROR:
+                return MSG_HTTP_ERROR;
+            case INVALID_TOKEN:
+                return MSG_INVALID_TOKEN;
             default:
                 return MSG_UNHANDLED_CASE;
         }
