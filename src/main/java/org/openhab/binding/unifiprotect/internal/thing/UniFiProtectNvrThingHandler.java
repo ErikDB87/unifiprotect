@@ -474,6 +474,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             } else if (type.equals(UniFiProtectBindingConstants.EVENT_TYPE_RING)) {
                 logger.debug("Handling add event ring");
                 if (cameraHandler instanceof UniFiProtectG4DoorbellThingHandler) {
+                    logger.debug("Calling handleRingAddEvent from handleEvent; 'event' = {}", event);
                     ((UniFiProtectG4DoorbellThingHandler) cameraHandler).handleRingAddEvent(eventId);
                 } else {
                     logger.error("Failed to handle ring event");
@@ -486,10 +487,11 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
         } else if (isUpdEvent(evt)) {
             logger.debug("Got EventActionUpd action: {} event: {}", action, event);
             if (type.equals(UniFiProtectBindingConstants.EVENT_TYPE_MOTION)) {
-                logger.debug("Handling event motion");
+                logger.debug("Handling event motion; 'event' = {}", event);
                 cameraHandler.handleThumbnailEvent(UniFiProtectBindingConstants.MOTION_EVENT_WAIT_TIME, eventId);
                 cameraHandler.handleHeatmapEvent(UniFiProtectBindingConstants.MOTION_EVENT_WAIT_TIME, eventId);
             } else if (type.equals(UniFiProtectBindingConstants.EVENT_TYPE_SMART_DETECT_ZONE)) {
+                logger.debug("Calling handleSmartDetectUpdEvent from handleEvent; 'event' = {}", event);
                 ((UniFiProtectG4CameraThingHandler) cameraHandler).handleSmartDetectUpdEvent(eventId);
             } else if (type.equals(UniFiProtectBindingConstants.EVENT_TYPE_RING)) {
                 logger.debug("Handling upd event ring");

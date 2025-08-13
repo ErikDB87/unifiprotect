@@ -560,7 +560,8 @@ public class UniFiProtectBaseThingHandler extends BaseThingHandler {
             logger.error("Failed to handle event, camera null");
             return;
         }
-        logger.debug("Scehduling completable future for camera: {} delay: {}", camera.getName(), delay);
+        logger.debug("Scehduling completable future for camera: {} delay: {}, eventID: {}", camera.getName(), delay,
+                eventId);
         CompletableFuture<UniFiProtectCamera> future = futures.get(cameraId + eventId + THMB_DL);
         if (future == null || future.isDone()) {
             Supplier<CompletableFuture<UniFiProtectCamera>> asyncTask = () -> CompletableFuture.completedFuture(camera);
