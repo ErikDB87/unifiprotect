@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Joseph (Seaside) Hagberg - Initial contribution
  */
+@NonNullByDefault
 public class UniFiProtectNvrDevice {
-    @NonNullByDefault
 
     private static final String LEFT_RIGHT_B_REGEX = "\\]|\\[";
     private String mac = UniFiProtectBindingConstants.EMPTY_STRING;

@@ -29,6 +29,7 @@ import org.eclipse.jetty.client.api.ContentProvider;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.http.HttpStatus;
@@ -166,7 +167,10 @@ public abstract class UniFiProtectRequest {
         Request request = newRequest();
         logger.debug("New request: {}", request);
         try {
-            logger.debug(">> {} {}", request.getMethod(), request.getURI());
+            if (logger.isDebugEnabled()) {
+                List<String> headers = request.getHeaders().stream().map((h) -> h.toString()).toList();
+                logger.debug(">> {} {} ({})", request.getMethod(), request.getURI(), String.join(", ", headers));
+            }
             response = request.send();
             ContentResponse resp = response;
             if (resp == null) {
@@ -174,11 +178,18 @@ public abstract class UniFiProtectRequest {
                 return new UniFiProtectStatus(SendStatus.EXECUTION_FAULT); // Could be anything, won't happen
             }
             if (logger.isDebugEnabled()) {
-                List<String> headers = resp.getHeaders().stream().map((h) -> h.toString()).toList();
+                HttpFields headersfields = resp.getHeaders();
+                List<String> headers = headersfields.stream().map((h) -> h.toString()).toList();
+                boolean postContent = !headersfields.contains("Content-Type", "image/jpeg");
                 String content = resp.getContentAsString();
                 if (content != null && !content.isBlank()) {
-                    logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(), String.join(", ", headers),
-                            content);
+                    if (postContent) {
+                        logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(),
+                                String.join(", ", headers), content);
+                    } else {
+                        logger.debug("<< {} {} ({}): content doesn't make sense to log", resp.getStatus(),
+                                resp.getReason(), String.join(", ", headers));
+                    }
                 } else {
                     logger.debug("<< {} {} ({}): no content", resp.getStatus(), resp.getReason(),
                             String.join(", ", headers));

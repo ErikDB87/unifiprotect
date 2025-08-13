@@ -169,7 +169,6 @@ public class UniFiProtectNvr {
         UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
         UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
         if (!requestSuccessFullySent(bootStrapRequestStatus)) {
-            logger.debug("No response received, logging in again");
             loginAgain = true;
         } else if (request.creditialsExpired()) {
             logger.debug("Credentials expired, logging in again");
