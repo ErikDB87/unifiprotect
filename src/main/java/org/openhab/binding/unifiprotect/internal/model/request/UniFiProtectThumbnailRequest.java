@@ -13,6 +13,7 @@
 package org.openhab.binding.unifiprotect.internal.model.request;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectUtil;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
@@ -28,11 +29,13 @@ public class UniFiProtectThumbnailRequest extends UniFiProtectRequest {
 
     private static final String API_THUMBNAILS = "/proxy/protect/api/thumbnails/";
 
-    public UniFiProtectThumbnailRequest(HttpClient httpClient, UniFiProtectCamera camera, String token,
+    public UniFiProtectThumbnailRequest(HttpClient httpClient, UniFiProtectCamera camera, @Nullable String token,
             String thumbnail, UniFiProtectNvrThingConfig config) {
         super(httpClient, config);
         setPath(API_THUMBNAILS.concat(thumbnail));
-        setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        if (token != null) {
+            setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        }
         setQueryParameter(QUERY_PARAM_HEIGHT, UniFiProtectUtil.calculateHeightFromWidth(config.getThumbnailWidth()));
         setQueryParameter(QUERY_PARAM_WIDTH, config.getThumbnailWidth());
     }

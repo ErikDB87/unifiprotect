@@ -13,6 +13,7 @@
 package org.openhab.binding.unifiprotect.internal.model.request;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
 
@@ -26,9 +27,11 @@ public class UniFiProtectBootstrapRequest extends UniFiProtectRequest {
 
     private static final String API_BOOTSTRAP = "/proxy/protect/api/bootstrap";
 
-    public UniFiProtectBootstrapRequest(HttpClient httpClient, UniFiProtectNvrThingConfig config, String token) {
+    public UniFiProtectBootstrapRequest(HttpClient httpClient, UniFiProtectNvrThingConfig config, @Nullable String token) {
         super(httpClient, config);
         setPath(API_BOOTSTRAP);
-        setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        if (token != null) {
+            setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        }
     }
 }

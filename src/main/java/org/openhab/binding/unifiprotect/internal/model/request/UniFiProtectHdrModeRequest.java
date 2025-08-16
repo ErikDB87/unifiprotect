@@ -13,6 +13,7 @@
 package org.openhab.binding.unifiprotect.internal.model.request;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
 
@@ -27,10 +28,12 @@ public class UniFiProtectHdrModeRequest extends UniFiProtectRequest {
     private static final String JSON_RAW_DISBLE = "{\"hdrMode\": false}";
 
     public UniFiProtectHdrModeRequest(HttpClient httpClient, String cameraId, UniFiProtectNvrThingConfig config,
-            String token, boolean enable) {
+            @Nullable String token, boolean enable) {
         super(httpClient, config);
         setPath(API_CAMERAS.concat(cameraId));
-        setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        if (token != null) {
+            setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        }
         setJsonRaw(enable ? JSON_RAW_ENABLE : JSON_RAW_DISBLE);
     }
 

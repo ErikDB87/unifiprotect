@@ -40,7 +40,7 @@ public class UniFiProtectLoginRequest extends UniFiProtectRequest {
 
     private final Logger logger = LoggerFactory.getLogger(UniFiProtectLoginRequest.class);
 
-    public UniFiProtectLoginRequest(String token, HttpClient httpClient, UniFiProtectNvrThingConfig config) {
+    public UniFiProtectLoginRequest(HttpClient httpClient, UniFiProtectNvrThingConfig config) {
         super(httpClient, config);
         setPath(AUTH_PATH_UNIFI_OS);
         setBodyParameter(USERNAME, config.getUserName());

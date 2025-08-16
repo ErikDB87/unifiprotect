@@ -13,6 +13,7 @@
 package org.openhab.binding.unifiprotect.internal.model.request;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectUtil;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
@@ -34,10 +35,12 @@ public class UniFiProtectEventsRequest extends UniFiProtectRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(UniFiProtectEventsRequest.class);
 
-    public UniFiProtectEventsRequest(HttpClient httpClient, UniFiProtectNvrThingConfig config, String token) {
+    public UniFiProtectEventsRequest(HttpClient httpClient, UniFiProtectNvrThingConfig config, @Nullable String token) {
         super(httpClient, config);
         setPath(API_EVENTS);
-        setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        if (token != null) {
+            setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        }
         long now = System.currentTimeMillis();
         long start = UniFiProtectUtil.calculateStartTimeForEvent(config.getEventsTimePeriodLength());
         setQueryParameter(START, start);

@@ -13,6 +13,7 @@
 package org.openhab.binding.unifiprotect.internal.model.request;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.unifiprotect.internal.UniFiProtectSmartDetectTypes;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
@@ -26,10 +27,12 @@ import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfi
 public class UniFiProtectSmartDetectRequest extends UniFiProtectRequest {
 
     public UniFiProtectSmartDetectRequest(HttpClient httpClient, String cameraId, UniFiProtectNvrThingConfig config,
-            String token, UniFiProtectSmartDetectTypes types) {
+            @Nullable String token, UniFiProtectSmartDetectTypes types) {
         super(httpClient, config);
         setPath(API_CAMERAS.concat(cameraId));
-        setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        if (token != null) {
+            setHeader(UniFiProtectRequest.HEADER_X_CSRF_TOKEN, token);
+        }
         setJsonRaw(types.getJsonRaw());
     }
 

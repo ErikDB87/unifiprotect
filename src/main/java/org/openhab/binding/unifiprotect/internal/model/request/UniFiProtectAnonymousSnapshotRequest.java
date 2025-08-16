@@ -28,7 +28,7 @@ public class UniFiProtectAnonymousSnapshotRequest extends UniFiProtectRequest {
     private static final String API_SNAP_JPEG = "/snap.jpeg";
     private static final int PORT_80 = 80;
 
-    public UniFiProtectAnonymousSnapshotRequest(HttpClient httpClient, String cameraHost, String token,
+    public UniFiProtectAnonymousSnapshotRequest(HttpClient httpClient, String cameraHost,
             UniFiProtectNvrThingConfig config) {
         super(httpClient, config);
         setHost(cameraHost);
