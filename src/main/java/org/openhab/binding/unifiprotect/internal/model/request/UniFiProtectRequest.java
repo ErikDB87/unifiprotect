@@ -180,7 +180,8 @@ public abstract class UniFiProtectRequest {
             if (logger.isDebugEnabled()) {
                 HttpFields headersfields = resp.getHeaders();
                 List<String> headers = headersfields.stream().map((h) -> h.toString()).toList();
-                boolean postContent = !headersfields.contains("Content-Type", "image/jpeg");
+                boolean postContent = !(headersfields.contains("Content-Type", "image/jpeg")
+                        || headersfields.contains("Content-Type", "image/png"));
                 String content = resp.getContentAsString();
                 if (content != null && !content.isBlank()) {
                     if (postContent) {
