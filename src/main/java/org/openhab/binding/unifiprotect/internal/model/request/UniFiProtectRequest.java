@@ -29,6 +29,7 @@ import org.eclipse.jetty.client.api.ContentProvider;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpScheme;
@@ -180,7 +181,9 @@ public abstract class UniFiProtectRequest {
             if (logger.isDebugEnabled()) {
                 HttpFields headersfields = resp.getHeaders();
                 List<String> headers = headersfields.stream().map((h) -> h.toString()).toList();
-                boolean postContent = !headersfields.contains("Content-Type", "image/jpeg");
+                HttpField contentTypeField = headersfields.getField("Content-Type");
+                String contentType = contentTypeField.getValue();
+                boolean postContent = !contentType.startsWith("image");
                 String content = resp.getContentAsString();
                 if (content != null && !content.isBlank()) {
                     if (postContent) {

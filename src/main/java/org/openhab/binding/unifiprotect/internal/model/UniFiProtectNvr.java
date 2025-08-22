@@ -119,7 +119,12 @@ public class UniFiProtectNvr {
         }
     }
 
-    public UniFiProtectStatus login(@Nullable String oldToken) {
+    public UniFiProtectStatus login() {
+        String token = getToken();
+        return login(token);
+    }
+
+    private UniFiProtectStatus login(@Nullable String oldToken) {
         String newToken;
         synchronized (tokenLock) {
             if (oldToken == null || oldToken.equals(token)) {
@@ -188,7 +193,8 @@ public class UniFiProtectNvr {
             if (firstName == null || firstName.isBlank()) {
                 return UniFiProtectStatus.STATUS_TOKEN_MISSING; // Should be something else - local user missing?
             }
-            newUser.setLocalUsername(firstName.toLowerCase(Locale.ROOT)); // Ugly workaround for localusername being null in response
+            newUser.setLocalUsername(firstName.toLowerCase(Locale.ROOT)); // Ugly workaround for localusername being
+                                                                          // null in response
         }
         synchronized (this) {
             nvrUser = newUser;
@@ -391,8 +397,8 @@ public class UniFiProtectNvr {
             logger.error("Failed to set hdr mode, camera field is missing: {}", camera);
             return;
         }
-        UniFiProtectHdrModeRequest request = new UniFiProtectHdrModeRequest(httpClient, cameraId, getConfig(), getToken(),
-                enable);
+        UniFiProtectHdrModeRequest request = new UniFiProtectHdrModeRequest(httpClient, cameraId, getConfig(),
+                getToken(), enable);
         if (!requestSuccessFullySent(request.sendRequest())) {
             return;
         }
@@ -452,8 +458,8 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage thumbnailImage = null;
-        UniFiProtectThumbnailRequest request = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(), thumbnail,
-                getConfig());
+        UniFiProtectThumbnailRequest request = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(),
+                thumbnail, getConfig());
         if (!requestSuccessFullySent(request.sendRequest())) {
             return null;
         }
@@ -514,7 +520,8 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage heatmapImage = null;
-        UniFiProtectHeatmapRequest request = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap, getConfig());
+        UniFiProtectHeatmapRequest request = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap,
+                getConfig());
         if (!requestSuccessFullySent(request.sendRequest())) {
             logger.warn("Heatmap request failed");
             return null;
@@ -550,8 +557,8 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage snapshot = null;
-        UniFiProtectSnapshotRequest request = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType, getToken(),
-                getConfig());
+        UniFiProtectSnapshotRequest request = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType,
+                getToken(), getConfig());
         if (!requestSuccessFullySent(request.sendRequest())) {
             return null;
         }
@@ -648,8 +655,7 @@ public class UniFiProtectNvr {
         logger.debug("LcdMessage result jsonResult: {}", jsonContent);
     }
 
-    public void setSmartDetectTypes(UniFiProtectCamera camera,
-            UniFiProtectSmartDetectTypes smartDetectTypes) {
+    public void setSmartDetectTypes(UniFiProtectCamera camera, UniFiProtectSmartDetectTypes smartDetectTypes) {
         String cameraId = camera != null ? camera.getId() : null;
         if (cameraId == null) {
             logger.error("Failed to set LCD, camera field is null: {}", camera);
