@@ -499,7 +499,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             return;
         } else if (isSocketClosedEvent(evt)) {
             eventManager.stop();
-            nvr.login();
+            nvr.login(null);
             eventManager.start(nvr.getHttpClient());
         } else {
             logger.debug("Unhandled event {}", evt.getPropertyName());

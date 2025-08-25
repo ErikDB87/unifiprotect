@@ -15,6 +15,7 @@ package org.openhab.binding.unifiprotect.internal.event;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jetty.client.HttpClient;
@@ -55,6 +56,10 @@ public class UniFiProtectEventManager implements PropertyChangeListener {
             socket = wsClient.start(httpClient);
             socket.addPropertyChangeListener(this);
             return true;
+        } catch (IOException e) {
+            // TODO: Figure out what IOException is thrown and if it's possible to deduce that it's a token failure here
+            logger.warn("Websocket start failed with: {}", e.getMessage(), e);
+            // TODO: This is probably where reacquiring the token and retrying should be done
         } catch (Exception e) {
             logger.error("Failed to start event api websocket listener", e);
         }

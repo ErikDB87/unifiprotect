@@ -88,7 +88,7 @@ public class UniFiProtectBoostrapTest {
         }
 
         @Override
-        public synchronized UniFiProtectStatus login() {
+        public synchronized UniFiProtectStatus login(@Nullable String oldToken) {
             return UniFiProtectStatus.STATUS_SUCCESS;
         }
     }

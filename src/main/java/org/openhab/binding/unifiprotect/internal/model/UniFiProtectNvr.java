@@ -111,15 +111,10 @@ public class UniFiProtectNvr {
     }
 
     @Nullable
-    private String getToken() {
+    public String getToken() {
         synchronized (tokenLock) {
             return token;
         }
-    }
-
-    public UniFiProtectStatus login() {
-        String token = getToken();
-        return login(token);
     }
 
     private void loginFailed() {
@@ -127,7 +122,7 @@ public class UniFiProtectNvr {
         // Something must probably be done to make the binding go into error state "cleanly"...?
     }
 
-    private UniFiProtectStatus login(@Nullable String oldToken) {
+    public UniFiProtectStatus login(@Nullable String oldToken) {
         String newToken;
         synchronized (tokenLock) {
             if (oldToken == null || oldToken.equals(token)) {
@@ -216,13 +211,18 @@ public class UniFiProtectNvr {
         UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
         UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
         if (!requestSuccessFullySent(bootStrapRequestStatus)) {
-            UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
-                token = getToken();
-                request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
-                bootStrapRequestStatus = request.sendRequest();
+            if (request.creditialsExpired() /* alternatively?: bootStrapRequestStatus.getStatus == SendStatus.INVALID_TOKEN */) {
+                logger.debug("Credentials expired, logging in again");
+                UniFiProtectStatus status = login(token);
+                if (status.getStatus() == SendStatus.SUCCESS) {
+                    token = getToken();
+                    request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
+                    bootStrapRequestStatus = request.sendRequest();
+                } else {
+                    return bootStrapRequestStatus;
+                }
             } else {
-                return bootStrapRequestStatus;
+                // TODO: Enter error state, request failed for other reason
             }
         }
         logger.debug("Request is ok, parsing cameras");

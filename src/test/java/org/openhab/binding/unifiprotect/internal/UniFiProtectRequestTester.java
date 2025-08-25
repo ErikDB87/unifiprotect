@@ -73,7 +73,7 @@ public class UniFiProtectRequestTester {
     public void getWebsocketMessage() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         nvr.getNvrUser();
         logger.debug("Fetch NvrUser: {}", nvr.getNvrUser());
@@ -97,7 +97,7 @@ public class UniFiProtectRequestTester {
     public void getBootstrap() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         nvr.getNvrUser();
         logger.debug("Fetch NvrUser: {}", nvr.getNvrUser());
@@ -108,7 +108,7 @@ public class UniFiProtectRequestTester {
     public void getAnonSnapshot() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -120,7 +120,7 @@ public class UniFiProtectRequestTester {
     public void enablePrivacyZone() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         Optional<UniFiProtectCamera> optCamera = cameraInsightCache.getCameras().stream()
@@ -134,7 +134,7 @@ public class UniFiProtectRequestTester {
     public void disablePrivacyZone() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         Optional<UniFiProtectCamera> optCamera = cameraInsightCache.getCameras().stream()
@@ -148,7 +148,7 @@ public class UniFiProtectRequestTester {
     public void getSnapshot() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -160,7 +160,7 @@ public class UniFiProtectRequestTester {
     public void getHeatmap() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -178,7 +178,7 @@ public class UniFiProtectRequestTester {
     public void getThumbnail() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         UniFiProtectCamera camera = cameraInsightCache.getCamera("7483C22FA4A5");
@@ -195,7 +195,7 @@ public class UniFiProtectRequestTester {
     public void setAlerts() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -207,7 +207,7 @@ public class UniFiProtectRequestTester {
     public void setSmartDetectTypes() {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         Optional<UniFiProtectCamera> optCamera = cameraInsightCache.getCameras().stream()
@@ -226,7 +226,7 @@ public class UniFiProtectRequestTester {
     public void setLcdMessagePackage() {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         Optional<UniFiProtectCamera> optCamera = cameraInsightCache.getCameras().stream()
@@ -242,7 +242,7 @@ public class UniFiProtectRequestTester {
     public void setHighFpsMode() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -255,7 +255,7 @@ public class UniFiProtectRequestTester {
     public void setHDRMode() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -267,7 +267,7 @@ public class UniFiProtectRequestTester {
     public void setIrMode() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -280,7 +280,7 @@ public class UniFiProtectRequestTester {
     public void setRecordingMode() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -293,7 +293,7 @@ public class UniFiProtectRequestTester {
     public void setStatusLightOn() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));
@@ -305,7 +305,7 @@ public class UniFiProtectRequestTester {
     public void rebootCamera() throws Exception {
         UniFiProtectNvr nvr = new UniFiProtectNvr(config);
         nvr.init();
-        nvr.login();
+        nvr.login(null);
         nvr.refreshProtect();
         UniFiProtectCameraCache cameraInsightCache = nvr.getCameraInsightCache();
         cameraInsightCache.getCameras().stream().forEach(camera -> logger.debug(camera.toString()));

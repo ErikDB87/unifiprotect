@@ -135,7 +135,7 @@ public abstract class UniFiProtectRequest {
     // TODO On 401 refresh websocket as well
     @SuppressWarnings("null")
     public synchronized boolean creditialsExpired() {
-        return getResponse() == null || getResponse().getStatus() == HTTP_STATUS_401;
+        return getResponse().getStatus() == HTTP_STATUS_401;
     }
 
     public synchronized String getStatusCodeMessage() {
@@ -181,17 +181,15 @@ public abstract class UniFiProtectRequest {
             if (logger.isDebugEnabled()) {
                 HttpFields headersfields = resp.getHeaders();
                 List<String> headers = headersfields.stream().map((h) -> h.toString()).toList();
-                HttpField contentTypeField = headersfields.getField("Content-Type");
-                String contentType = contentTypeField.getValue();
-                boolean postContent = !contentType.startsWith("image");
                 String content = resp.getContentAsString();
-                if (content != null && !content.isBlank()) {
-                    if (postContent) {
-                        logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(),
-                                String.join(", ", headers), content);
+                boolean hasContent = content != null && !content.isBlank();
+                if (hasContent) {
+                    HttpField contentTypeField;
+                    String contentType;
+                    if ((contentTypeField = headersfields.getField("Content-Type")) != null && (contentType = contentTypeField.getValue()) != null && contentType.startsWith("image")) {
+                        logger.debug("<< {} {} ({}): image data", resp.getStatus(), resp.getReason(), String.join(", ", headers));
                     } else {
-                        logger.debug("<< {} {} ({}): content doesn't make sense to log", resp.getStatus(),
-                                resp.getReason(), String.join(", ", headers));
+                        logger.debug("<< {} {} ({}):\n{}", resp.getStatus(), resp.getReason(), String.join(", ", headers), content);
                     }
                 } else {
                     logger.debug("<< {} {} ({}): no content", resp.getStatus(), resp.getReason(),
