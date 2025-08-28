@@ -119,7 +119,12 @@ public class UniFiProtectNvr {
 
     private void loginFailed() {
         logger.debug("Login attempt failed.");
-        // Something must probably be done to make the binding go into error state "cleanly"...?
+        // TODO: Enter error state, login failed
+    }
+
+    private void requestFailedForOtherReasonThan401() {
+        logger.debug("The request failed for another reason than 401.");
+        // TODO: Enter error state, request failed for other reason
     }
 
     public UniFiProtectStatus login(@Nullable String oldToken) {
@@ -211,7 +216,10 @@ public class UniFiProtectNvr {
         UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
         UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
         if (!requestSuccessFullySent(bootStrapRequestStatus)) {
-            if (request.creditialsExpired() /* alternatively?: bootStrapRequestStatus.getStatus == SendStatus.INVALID_TOKEN */) {
+            if (request
+                    .creditialsExpired() /*
+                                          * alternatively?: bootStrapRequestStatus.getStatus == SendStatus.INVALID_TOKEN
+                                          */) {
                 logger.debug("Credentials expired, logging in again");
                 UniFiProtectStatus status = login(token);
                 if (status.getStatus() == SendStatus.SUCCESS) {
@@ -222,7 +230,7 @@ public class UniFiProtectNvr {
                     return bootStrapRequestStatus;
                 }
             } else {
-                // TODO: Enter error state, request failed for other reason
+                requestFailedForOtherReasonThan401();
             }
         }
         logger.debug("Request is ok, parsing cameras");

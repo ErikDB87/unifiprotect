@@ -105,7 +105,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             status = nvr.start();
             if (status.getStatus() == SendStatus.SUCCESS) {
                 eventManager = new UniFiProtectEventManager(nvr.getUniFiProtectJsonParser(), config);
-                eventManager.start(nvr.getHttpClient());
+                eventManager.start(nvr);
                 eventManager.addPropertyChangeListener(this);
             }
         }
@@ -171,7 +171,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
         if (status.getStatus() == SendStatus.SUCCESS) {
             updateStatus(ONLINE);
             if (!eventManager.isStarted()) {
-                eventManager.start(nvr.getHttpClient());
+                eventManager.start(nvr);
                 eventManager.addPropertyChangeListener(this);
             }
         } else {
@@ -206,7 +206,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             status = nvr.refreshProtect();
             if (status.equals(UniFiProtectStatus.STATUS_SUCCESS_LOGIN)) {
                 eventManager.stop();
-                eventManager.start(nvr.getHttpClient());
+                eventManager.start(nvr);
             }
             if (status.getStatus() == SendStatus.SUCCESS) {
                 refreshNvrChannels();
@@ -498,9 +498,10 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             }
             return;
         } else if (isSocketClosedEvent(evt)) {
+            logger.debug("Socket disconnected!");
             eventManager.stop();
             nvr.login(null);
-            eventManager.start(nvr.getHttpClient());
+            eventManager.start(nvr);
         } else {
             logger.debug("Unhandled event {}", evt.getPropertyName());
         }

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jetty.client.HttpClient;
+import org.openhab.binding.unifiprotect.internal.model.UniFiProtectNvr;
 import org.openhab.binding.unifiprotect.internal.model.json.UniFiProtectJsonParser;
 import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
 import org.openhab.binding.unifiprotect.websocket.UniFiProtectAction;
@@ -50,7 +51,9 @@ public class UniFiProtectEventManager implements PropertyChangeListener {
         return socket != null;
     }
 
-    public synchronized boolean start(HttpClient httpClient) {
+    public synchronized boolean start(UniFiProtectNvr nvr) {
+        HttpClient httpClient = nvr.getHttpClient();
+        String token = nvr.getToken();
         try {
             logger.debug("Trying to start new websocket");
             socket = wsClient.start(httpClient);
@@ -58,8 +61,9 @@ public class UniFiProtectEventManager implements PropertyChangeListener {
             return true;
         } catch (IOException e) {
             // TODO: Figure out what IOException is thrown and if it's possible to deduce that it's a token failure here
-            logger.warn("Websocket start failed with: {}", e.getMessage(), e);
+            logger.warn("Websocket start (with token {}) failed with: {}", token, e.getMessage(), e);
             // TODO: This is probably where reacquiring the token and retrying should be done
+            nvr.login(token);
         } catch (Exception e) {
             logger.error("Failed to start event api websocket listener", e);
         }
