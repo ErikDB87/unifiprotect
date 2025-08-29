@@ -39,6 +39,7 @@ public class UniFiProtectStatus {
     private static final String MSG_NOT_SENT = "Request not sent";
     private static final String MSG_TOKEN_MISSING = "Token is missing";
     private static final String MSG_INVALID_TOKEN = "Token is invalid";
+    private static final String MSG_NOT_FOUND = "Requested source not found. That's not uncommen if the request was for 'heatmap' or 'thumbnail'";
     private static final String MSG_HTTP_ERROR = "Unhandled HTTP error";
 
     private final SendStatus status;
@@ -70,7 +71,8 @@ public class UniFiProtectStatus {
         TOKEN_MISSING,
         EXECUTION_FAULT,
         HTTP_ERROR,
-        INVALID_TOKEN;
+        INVALID_TOKEN,
+        NOT_FOUND;
     }
 
     public String getMessage() {
@@ -91,6 +93,8 @@ public class UniFiProtectStatus {
                 return MSG_HTTP_ERROR;
             case INVALID_TOKEN:
                 return MSG_INVALID_TOKEN;
+            case NOT_FOUND:
+                return MSG_NOT_FOUND;
             default:
                 return MSG_UNHANDLED_CASE;
         }
