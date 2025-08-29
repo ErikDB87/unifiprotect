@@ -215,23 +215,18 @@ public class UniFiProtectNvr {
         String token = getToken();
         UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
         UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
-        if (!requestSuccessFullySent(bootStrapRequestStatus)) {
-            if (request
-                    .creditialsExpired() /*
-                                          * alternatively?: bootStrapRequestStatus.getStatus == SendStatus.INVALID_TOKEN
-                                          */) {
-                logger.debug("Credentials expired, logging in again");
-                UniFiProtectStatus status = login(token);
-                if (status.getStatus() == SendStatus.SUCCESS) {
-                    token = getToken();
-                    request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
-                    bootStrapRequestStatus = request.sendRequest();
-                } else {
-                    return bootStrapRequestStatus;
-                }
+        if (bootStrapRequestStatus.getStatus() == SendStatus.INVALID_TOKEN) {
+            logger.debug("Credentials expired, logging in again");
+            UniFiProtectStatus status = login(token);
+            if (status.getStatus() == SendStatus.SUCCESS) {
+                token = getToken();
+                request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
+                bootStrapRequestStatus = request.sendRequest();
             } else {
-                requestFailedForOtherReasonThan401();
+                return bootStrapRequestStatus;
             }
+        } else {
+            requestFailedForOtherReasonThan401();
         }
         logger.debug("Request is ok, parsing cameras");
         final String bootstrapJsonContent = request.getJsonContent();
@@ -245,7 +240,7 @@ public class UniFiProtectNvr {
     public UniFiProtectStatus refreshEvents() {
         UniFiProtectEventsRequest eventsRequest = new UniFiProtectEventsRequest(httpClient, getConfig(), getToken());
         UniFiProtectStatus sendStatus = eventsRequest.sendRequest();
-        if (!requestSuccessFullySent(sendStatus)) {
+        if (sendStatus.getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -323,7 +318,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectStatusLightRequest request = new UniFiProtectStatusLightRequest(httpClient, cameraId, getConfig(),
                 getToken(), enabled);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -345,7 +340,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectRebootCameraRequest request = new UniFiProtectRebootCameraRequest(httpClient, cameraId, getConfig(),
                 getToken());
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -373,7 +368,7 @@ public class UniFiProtectNvr {
 
         UniFiProtectRecordingModeRequest request = new UniFiProtectRecordingModeRequest(httpClient, cameraId,
                 getConfig(), getToken(), recordingMode);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -397,7 +392,7 @@ public class UniFiProtectNvr {
         if (id != null && !id.isEmpty()) {
             UniFiProtectAlertsRequest request = new UniFiProtectAlertsRequest(httpClient, getConfig(), getToken(), id,
                     enable);
-            if (!requestSuccessFullySent(request.sendRequest())) {
+            if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
                 UniFiProtectStatus status = login(token);
                 if (status.getStatus() == SendStatus.SUCCESS) {
                     token = getToken();
@@ -426,7 +421,7 @@ public class UniFiProtectNvr {
         UniFiProtectIrModeRequest request = new UniFiProtectIrModeRequest(httpClient, cameraId, getConfig(), getToken(),
                 irMode);
 
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -448,7 +443,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectHdrModeRequest request = new UniFiProtectHdrModeRequest(httpClient, cameraId, getConfig(),
                 getToken(), enable);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -470,7 +465,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectPrivacyZoneRequest request = new UniFiProtectPrivacyZoneRequest(httpClient, cameraId, getConfig(),
                 getToken(), enable);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -492,7 +487,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectMotionDetectionRequest request = new UniFiProtectMotionDetectionRequest(httpClient, cameraId,
                 getConfig(), getToken(), enable);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -514,7 +509,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectHighFpsModeRequest request = new UniFiProtectHighFpsModeRequest(httpClient, cameraId, getConfig(),
                 getToken(), enable);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -537,7 +532,7 @@ public class UniFiProtectNvr {
         UniFiProtectImage thumbnailImage = null;
         UniFiProtectThumbnailRequest request = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(),
                 thumbnail, getConfig());
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -606,7 +601,7 @@ public class UniFiProtectNvr {
         UniFiProtectImage heatmapImage = null;
         UniFiProtectHeatmapRequest request = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap,
                 getConfig());
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -649,7 +644,7 @@ public class UniFiProtectNvr {
         UniFiProtectImage snapshot = null;
         UniFiProtectSnapshotRequest request = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType,
                 getToken(), getConfig());
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -686,7 +681,7 @@ public class UniFiProtectNvr {
         UniFiProtectImage anonSnapshotImage = null;
         UniFiProtectAnonymousSnapshotRequest request = new UniFiProtectAnonymousSnapshotRequest(httpClient, cameraHost,
                 getConfig());
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -752,7 +747,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectLcdMessageRequest request = new UniFiProtectLcdMessageRequest(httpClient, cameraId, getConfig(),
                 getToken(), lcdMessage);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -774,7 +769,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectSmartDetectRequest request = new UniFiProtectSmartDetectRequest(httpClient, cameraId, getConfig(),
                 getToken(), smartDetectTypes);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -798,7 +793,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectStatusSoundsRequest request = new UniFiProtectStatusSoundsRequest(httpClient, cameraId, getConfig(),
                 getToken(), enabled);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
@@ -820,7 +815,7 @@ public class UniFiProtectNvr {
         }
         UniFiProtectChimeRequest request = new UniFiProtectChimeRequest(httpClient, cameraId, getConfig(), getToken(),
                 chimeDuration);
-        if (!requestSuccessFullySent(request.sendRequest())) {
+        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
             if (status.getStatus() == SendStatus.SUCCESS) {
                 token = getToken();
