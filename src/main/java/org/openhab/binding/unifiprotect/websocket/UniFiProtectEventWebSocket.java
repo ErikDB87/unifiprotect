@@ -135,14 +135,21 @@ public class UniFiProtectEventWebSocket {
             } else if (modelKey.equals(UniFiProtectAction.MODEL_KEY_CAMERA)) {
                 logger.debug("ModelKeyCamera Got: {} and event action: {}", action.getAction(), upFrame);
             } else {
-                int x = 0;
-                boolean notAlreadyInList = true;
-                do {
-                    if (!modelKey.equals(modelKeys.get(x))) {
+                if (modelKeys.size() == 0) {
+                    modelKeys.add(modelKey);
+                } else {
+                    int x = 0;
+                    boolean notAlreadyInList = true;
+                    while (notAlreadyInList && x < modelKeys.size()) {
+                        if (modelKey.equals(modelKeys.get(x))) {
+                            notAlreadyInList = false;
+                        }
+                        x++;
+                    }
+                    if (!notAlreadyInList) {
                         modelKeys.add(modelKey);
                     }
-                    x++;
-                } while (x < modelKeys.size() && notAlreadyInList);
+                }
                 logger.debug("Other ModelKey: {}", modelKey);
                 logger.debug("ArrayList of other ModelKeys received until now: {}", modelKeys.toString());
             }
