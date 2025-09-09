@@ -16,6 +16,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +51,7 @@ public class UniFiProtectEventWebSocket {
     private final UniFiProtectJsonParser uniFiProtectJsonParser;
     private final Logger logger = LoggerFactory.getLogger(UniFiProtectEventWebSocket.class);
     private final PropertyChangeSupport propertyChangeSupport;
+    private static ArrayList<String> modelKeys = new ArrayList<String>();
 
     public UniFiProtectEventWebSocket(UniFiProtectJsonParser uniFiProtectJsonParser) {
         this.closeLatch = new CountDownLatch(1);
@@ -120,7 +122,8 @@ public class UniFiProtectEventWebSocket {
             if (action == null) {
                 return;
             }
-            if (action.getModelKey().equals(UniFiProtectAction.MODEL_KEY_EVENT)) {
+            String modelKey = action.getModelKey();
+            if (modelKey.equals(UniFiProtectAction.MODEL_KEY_EVENT)) {
                 logger.debug("ModelKeyEvent Got: {} and event action: {}", action.getAction(), upFrame);
                 if (action.getAction().equals(UniFiProtectAction.ACTION_ADD)) {
                     propertyChangeSupport.firePropertyChange(UniFiProtectAction.PROPERTY_EVENT_ACTION_ADD, null,
@@ -129,8 +132,19 @@ public class UniFiProtectEventWebSocket {
                     propertyChangeSupport.firePropertyChange(UniFiProtectAction.PROPERTY_EVENT_ACTION_UPDATE, null,
                             action);
                 }
-            } else if (action.getModelKey().equals(UniFiProtectAction.MODEL_KEY_CAMERA)) {
+            } else if (modelKey.equals(UniFiProtectAction.MODEL_KEY_CAMERA)) {
                 logger.debug("ModelKeyCamera Got: {} and event action: {}", action.getAction(), upFrame);
+            } else {
+                int x = 0;
+                boolean notAlreadyInList = true;
+                do {
+                    if (!modelKey.equals(modelKeys.get(x))) {
+                        modelKeys.add(modelKey);
+                    }
+                    x++;
+                } while (x < modelKeys.size() && notAlreadyInList);
+                logger.debug("Other ModelKey: {}", modelKey);
+                logger.debug("ArrayList of other ModelKeys received until now: {}", modelKeys.toString());
             }
         }
     }

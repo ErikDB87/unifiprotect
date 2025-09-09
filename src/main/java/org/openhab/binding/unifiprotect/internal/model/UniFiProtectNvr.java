@@ -122,8 +122,8 @@ public class UniFiProtectNvr {
         // TODO: Enter error state, login failed
     }
 
-    private void requestFailedForOtherReasonThan401() {
-        logger.debug("The request failed for another reason than 401.");
+    private void requestFailedForOtherReasonThan401(UniFiProtectStatus requestStatus) {
+        logger.debug("Request unsuccessful: {}.", requestStatus.getStatus());
         // TODO: Enter error state, request failed for other reason
     }
 
@@ -133,7 +133,7 @@ public class UniFiProtectNvr {
             if (oldToken == null || oldToken.equals(token)) {
                 UniFiProtectLoginRequest loginRequest = new UniFiProtectLoginRequest(httpClient, getConfig());
                 UniFiProtectStatus sendStatus = loginRequest.sendRequest();
-                if (!requestSuccessFullySent(sendStatus)) {
+                if (!sendStatus.success()) {
                     loginFailed();
                     return sendStatus;
                 }
@@ -213,23 +213,27 @@ public class UniFiProtectNvr {
 
     protected UniFiProtectStatus refreshBootstrap() {
         String token = getToken();
-        UniFiProtectBootstrapRequest request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
-        UniFiProtectStatus bootStrapRequestStatus = request.sendRequest();
-        if (bootStrapRequestStatus.getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectBootstrapRequest bootStrapRequest = new UniFiProtectBootstrapRequest(httpClient, getConfig(),
+                token);
+        UniFiProtectStatus requestStatus = bootStrapRequest.sendRequest();
+        if (requestStatus.badToken()) {
             logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
-                bootStrapRequestStatus = request.sendRequest();
+                bootStrapRequest = new UniFiProtectBootstrapRequest(httpClient, getConfig(), token);
+                requestStatus = bootStrapRequest.sendRequest();
             } else {
-                return bootStrapRequestStatus;
+                loginFailed();
+                return requestStatus;
             }
-        } else {
-            requestFailedForOtherReasonThan401();
+        }
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return requestStatus;
         }
         logger.debug("Request is ok, parsing cameras");
-        final String bootstrapJsonContent = request.getJsonContent();
+        final String bootstrapJsonContent = bootStrapRequest.getJsonContent();
         if (bootstrapJsonContent == null) {
             logger.error("Got null response when refreshing bootstrap");
             return UniFiProtectStatus.STATUS_EXECUTION_FAULT;
@@ -239,16 +243,22 @@ public class UniFiProtectNvr {
 
     public UniFiProtectStatus refreshEvents() {
         UniFiProtectEventsRequest eventsRequest = new UniFiProtectEventsRequest(httpClient, getConfig(), getToken());
-        UniFiProtectStatus sendStatus = eventsRequest.sendRequest();
-        if (sendStatus.getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatus requestStatus = eventsRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
                 eventsRequest = new UniFiProtectEventsRequest(httpClient, getConfig(), token);
-                sendStatus = eventsRequest.sendRequest();
+                requestStatus = eventsRequest.sendRequest();
             } else {
-                return sendStatus;
+                loginFailed();
+                return requestStatus;
             }
+        }
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return requestStatus;
         }
         final String jsonContent = eventsRequest.getJsonContent();
         if (jsonContent == null) {
@@ -259,7 +269,7 @@ public class UniFiProtectNvr {
         final UniFiProtectEvent[] events = getUniFiProtectJsonParser().getEventsFromJson(jsonContent);
         getEventCache().clear();
         getEventCache().putAll(Arrays.asList(events));
-        return sendStatus;
+        return requestStatus;
     }
 
     private UniFiProtectEventCache getEventCache() {
@@ -273,14 +283,14 @@ public class UniFiProtectNvr {
             status = login(token);
             // TODO: Refresh websocket as well
         }
-        if (status != null && status.getStatus() != SendStatus.SUCCESS) {
+        if (status != null && !status.success()) {
             logger.error("Failed to updated Cameras since we can't seem to login status: {}", status.getStatus());
             logger.debug("Status message: {} exception: {}", status.getMessage(),
                     status.getException() != null ? status.getException().toString() : "");
             return status;
         }
         UniFiProtectStatus refreshBootstrap = refreshBootstrap();
-        if (refreshBootstrap.getStatus() == SendStatus.SUCCESS) {
+        if (refreshBootstrap.success()) {
             logger.debug("Successfully refreshed bootstrap");
         }
 
@@ -316,19 +326,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set status light on, camera has null fields: {}", camera);
             return;
         }
-        UniFiProtectStatusLightRequest request = new UniFiProtectStatusLightRequest(httpClient, cameraId, getConfig(),
-                getToken(), enabled);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatusLightRequest statusLightRequest = new UniFiProtectStatusLightRequest(httpClient, cameraId,
+                getConfig(), getToken(), enabled);
+        UniFiProtectStatus requestStatus = statusLightRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectStatusLightRequest(httpClient, cameraId, getConfig(), token, enabled);
-                request.sendRequest();
+                statusLightRequest = new UniFiProtectStatusLightRequest(httpClient, cameraId, getConfig(), getToken(),
+                        enabled);
+                requestStatus = statusLightRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = statusLightRequest.getJsonContent();
         logger.debug("StatusLight on result jsonResult: {}", jsonContent);
     }
 
@@ -338,19 +356,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to reoobt camera since fields are null: {}", camera);
             return;
         }
-        UniFiProtectRebootCameraRequest request = new UniFiProtectRebootCameraRequest(httpClient, cameraId, getConfig(),
-                getToken());
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectRebootCameraRequest rebootCameraRequest = new UniFiProtectRebootCameraRequest(httpClient, cameraId,
+                getConfig(), getToken());
+        UniFiProtectStatus requestStatus = rebootCameraRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectRebootCameraRequest(httpClient, cameraId, getConfig(), token);
-                request.sendRequest();
+                rebootCameraRequest = new UniFiProtectRebootCameraRequest(httpClient, cameraId, getConfig(),
+                        getToken());
+                requestStatus = rebootCameraRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = rebootCameraRequest.getJsonContent();
         logger.debug("Reboot camera Result: {}", jsonContent);
     }
 
@@ -366,19 +392,27 @@ public class UniFiProtectNvr {
             return;
         }
 
-        UniFiProtectRecordingModeRequest request = new UniFiProtectRecordingModeRequest(httpClient, cameraId,
-                getConfig(), getToken(), recordingMode);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectRecordingModeRequest recordingModeRequest = new UniFiProtectRecordingModeRequest(httpClient,
+                cameraId, getConfig(), getToken(), recordingMode);
+        UniFiProtectStatus requestStatus = recordingModeRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectRecordingModeRequest(httpClient, cameraId, getConfig(), token, recordingMode);
-                request.sendRequest();
+                recordingModeRequest = new UniFiProtectRecordingModeRequest(httpClient, cameraId, getConfig(),
+                        getToken(), recordingMode);
+                requestStatus = recordingModeRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = recordingModeRequest.getJsonContent();
         logger.debug("Set Recording mode on camera Result: {}", jsonContent);
     }
 
@@ -394,7 +428,7 @@ public class UniFiProtectNvr {
                     enable);
             if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
                 UniFiProtectStatus status = login(token);
-                if (status.getStatus() == SendStatus.SUCCESS) {
+                if (status.success()) {
                     token = getToken();
                     request = new UniFiProtectAlertsRequest(httpClient, getConfig(), token, id, enable);
                     request.sendRequest();
@@ -418,20 +452,27 @@ public class UniFiProtectNvr {
             return;
         }
 
-        UniFiProtectIrModeRequest request = new UniFiProtectIrModeRequest(httpClient, cameraId, getConfig(), getToken(),
-                irMode);
+        UniFiProtectIrModeRequest irModeRequest = new UniFiProtectIrModeRequest(httpClient, cameraId, getConfig(),
+                getToken(), irMode);
 
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatus requestStatus = irModeRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectIrModeRequest(httpClient, cameraId, getConfig(), token, irMode);
-                request.sendRequest();
+                irModeRequest = new UniFiProtectIrModeRequest(httpClient, cameraId, getConfig(), getToken(), irMode);
+                requestStatus = irModeRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = irModeRequest.getJsonContent();
         logger.debug("Set IR mode on camera Result: {}", jsonContent);
     }
 
@@ -445,7 +486,7 @@ public class UniFiProtectNvr {
                 getToken(), enable);
         if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
                 request = new UniFiProtectHdrModeRequest(httpClient, cameraId, getConfig(), token, enable);
                 request.sendRequest();
@@ -463,19 +504,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set privacy zone, camera field is missing: {}", camera);
             return;
         }
-        UniFiProtectPrivacyZoneRequest request = new UniFiProtectPrivacyZoneRequest(httpClient, cameraId, getConfig(),
-                getToken(), enable);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectPrivacyZoneRequest privacyZoneRequest = new UniFiProtectPrivacyZoneRequest(httpClient, cameraId,
+                getConfig(), getToken(), enable);
+        UniFiProtectStatus requestStatus = privacyZoneRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectPrivacyZoneRequest(httpClient, cameraId, getConfig(), token, enable);
-                request.sendRequest();
+                privacyZoneRequest = new UniFiProtectPrivacyZoneRequest(httpClient, cameraId, getConfig(), getToken(),
+                        enable);
+                requestStatus = privacyZoneRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = privacyZoneRequest.getJsonContent();
         logger.debug("Privacy result jsonResult: {}", jsonContent);
     }
 
@@ -489,7 +538,7 @@ public class UniFiProtectNvr {
                 getConfig(), getToken(), enable);
         if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
                 request = new UniFiProtectMotionDetectionRequest(httpClient, cameraId, getConfig(), token, enable);
                 request.sendRequest();
@@ -507,19 +556,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to turn on high Fps mode, camera field is null: {}", camera);
             return;
         }
-        UniFiProtectHighFpsModeRequest request = new UniFiProtectHighFpsModeRequest(httpClient, cameraId, getConfig(),
-                getToken(), enable);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectHighFpsModeRequest highFpsModeRequest = new UniFiProtectHighFpsModeRequest(httpClient, cameraId,
+                getConfig(), getToken(), enable);
+        UniFiProtectStatus requestStatus = highFpsModeRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectHighFpsModeRequest(httpClient, cameraId, getConfig(), token, enable);
-                request.sendRequest();
+                highFpsModeRequest = new UniFiProtectHighFpsModeRequest(httpClient, cameraId, getConfig(), getToken(),
+                        enable);
+                requestStatus = highFpsModeRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = highFpsModeRequest.getJsonContent();
         logger.debug("High FPS mode result jsonResult: {}", jsonContent);
     }
 
@@ -530,56 +587,42 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage thumbnailImage = null;
-        UniFiProtectThumbnailRequest request = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(),
+        UniFiProtectThumbnailRequest thumbnailRequest = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(),
                 thumbnail, getConfig());
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatus requestStatus = thumbnailRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectThumbnailRequest(httpClient, camera, token, thumbnail, getConfig());
-                request.sendRequest();
+                thumbnailRequest = new UniFiProtectThumbnailRequest(httpClient, camera, getToken(), thumbnail,
+                        getConfig());
+                requestStatus = thumbnailRequest.sendRequest();
             } else {
+                loginFailed();
                 return null;
             }
         }
-        if (UniFiProtectUtil.requestHasContentOfSize(request, IMAGE_MIN_SIZE)) {
-            byte[] data = request.getResponse().getContent();
-            // logger.debug("Content size for thumbnail request: {}", data.length);
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return null;
+        }
+        if (UniFiProtectUtil.requestHasContentOfSize(thumbnailRequest, IMAGE_MIN_SIZE)) {
+            byte[] data = thumbnailRequest.getResponse().getContent();
+            // logger.debug("Content size for thumbnail thumbnailRequest: {}", data.length);
             final String cameraId = camera.getId();
             if (cameraId == null) {
                 logger.error("CameraId is null, cannot download thumbnail: {}", camera);
                 return null;
             }
             File thumbnailFile = UniFiProtectUtil.writeThumbnailToImageFolder(getConfig().getImageFolder(), cameraId,
-                    event.getType(), request.getResponse().getContent());
+                    event.getType(), thumbnailRequest.getResponse().getContent());
             if (thumbnailFile != null) {
                 thumbnailImage = new UniFiProtectImage(UniFiProtectImageHandler.IMAGE_JPEG, thumbnailFile);
                 logger.debug("Wrote thumbnail file: {} size: {}", thumbnailFile.getAbsolutePath(), data.length);
             }
         }
         return thumbnailImage;
-    }
-
-    private boolean requestSuccessFullySent(UniFiProtectStatus status) {
-        switch (status.getStatus()) {
-            case EXECUTION_FAULT:
-            case INTERRUPTED:
-            case NOT_SENT:
-            case TIMEOUT:
-            case TOKEN_MISSING:
-            case HTTP_ERROR:
-            case INVALID_TOKEN:
-                logger.debug("Request failed reason: {} message: {}", status.getStatus().name(), status.getMessage(),
-                        status.getException());
-                return false;
-            case SUCCESS:
-                logger.debug("Successfullt sent request");
-                return true;
-            default:
-                logger.debug("Unhandled case: {} message: {}", status.getStatus().name(), status.getMessage(),
-                        status.getException());
-                return true;
-        }
     }
 
     public @Nullable UniFiProtectEvent getLastMotionEvent(UniFiProtectCamera camera) {
@@ -599,21 +642,28 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage heatmapImage = null;
-        UniFiProtectHeatmapRequest request = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap,
+        UniFiProtectHeatmapRequest heatmapRequest = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap,
                 getConfig());
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatus requestStatus = heatmapRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectHeatmapRequest(httpClient, token, heatmap, getConfig());
-                request.sendRequest();
+                heatmapRequest = new UniFiProtectHeatmapRequest(httpClient, getToken(), heatmap, getConfig());
+                requestStatus = heatmapRequest.sendRequest();
             } else {
+                loginFailed();
                 return null;
             }
         }
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return null;
+        }
 
-        if (UniFiProtectUtil.requestHasContentOfSize(request, IMAGE_MIN_SIZE)) {
-            byte[] data = request.getResponse().getContent();
+        if (UniFiProtectUtil.requestHasContentOfSize(heatmapRequest, IMAGE_MIN_SIZE)) {
+            byte[] data = heatmapRequest.getResponse().getContent();
             File heatmapFile = UniFiProtectUtil.writeHeatmapToFile(getConfig().getImageFolder(), cameraId, data,
                     event.getType());
             if (heatmapFile != null) {
@@ -622,8 +672,8 @@ public class UniFiProtectNvr {
                         heatmapImage.getData().length);
             }
         } else {
-            byte[] data = request.getResponse().getContent();
-            logger.debug("Heatmap request resulted in a error size image");
+            byte[] data = heatmapRequest.getResponse().getContent();
+            logger.debug("Heatmap heatmapRequest resulted in a error size image");
             if (data != null) {
                 try {
                     logger.debug("Heatmap data: {} {}", data.length, new String(data));
@@ -642,22 +692,31 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage snapshot = null;
-        UniFiProtectSnapshotRequest request = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType,
+        UniFiProtectSnapshotRequest snapshotRequest = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType,
                 getToken(), getConfig());
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatus requestStatus = snapshotRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType, token, getConfig());
-                request.sendRequest();
+                snapshotRequest = new UniFiProtectSnapshotRequest(httpClient, cameraId, cameraType, getToken(),
+                        getConfig());
+                requestStatus = snapshotRequest.sendRequest();
             } else {
+                loginFailed();
                 return null;
             }
         }
-        if (UniFiProtectUtil.requestHasContentOfSize(request, IMAGE_MIN_SIZE)) {
-            logger.debug("Content size for snapshot request: {}", request.getResponse().getContent().length);
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return null;
+        }
+        if (UniFiProtectUtil.requestHasContentOfSize(snapshotRequest, IMAGE_MIN_SIZE)) {
+            logger.debug("Content size for snapshot snapshotRequest: {}",
+                    snapshotRequest.getResponse().getContent().length);
             File file = UniFiProtectUtil.writeSnapshotToFile(getConfig().getImageFolder(), cameraId,
-                    request.getResponse().getContent());
+                    snapshotRequest.getResponse().getContent());
             if (file != null) {
                 logger.debug("Wrote snapshot file: {} size: {}", file.getAbsolutePath(), file.length());
                 snapshot = new UniFiProtectImage(UniFiProtectImageHandler.IMAGE_JPEG, file);
@@ -679,21 +738,29 @@ public class UniFiProtectNvr {
             return null;
         }
         UniFiProtectImage anonSnapshotImage = null;
-        UniFiProtectAnonymousSnapshotRequest request = new UniFiProtectAnonymousSnapshotRequest(httpClient, cameraHost,
-                getConfig());
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectAnonymousSnapshotRequest anonSnapshotRequest = new UniFiProtectAnonymousSnapshotRequest(httpClient,
+                cameraHost, getConfig());
+        UniFiProtectStatus requestStatus = anonSnapshotRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectAnonymousSnapshotRequest(httpClient, cameraHost, getConfig());
-                request.sendRequest();
+                anonSnapshotRequest = new UniFiProtectAnonymousSnapshotRequest(httpClient, cameraHost, getConfig());
+                requestStatus = anonSnapshotRequest.sendRequest();
             } else {
+                loginFailed();
                 return null;
             }
         }
-        if (UniFiProtectUtil.requestHasContentOfSize(request, IMAGE_MIN_SIZE)) {
-            logger.debug("Content size for anon snapshot request: {}", request.getResponse().getContent().length);
-            final byte[] data = request.getResponse().getContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return null;
+        }
+        if (UniFiProtectUtil.requestHasContentOfSize(anonSnapshotRequest, IMAGE_MIN_SIZE)) {
+            logger.debug("Content size for anon snapshot anonSnapshotRequest: {}",
+                    anonSnapshotRequest.getResponse().getContent().length);
+            final byte[] data = anonSnapshotRequest.getResponse().getContent();
             File file = UniFiProtectUtil.writeAnonSnapshotToFile(getConfig().getImageFolder(), cameraId, data);
             if (file != null) {
                 anonSnapshotImage = new UniFiProtectImage(UniFiProtectImageHandler.IMAGE_JPEG, file);
@@ -745,19 +812,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set LCD, camera field is null: {}", camera);
             return;
         }
-        UniFiProtectLcdMessageRequest request = new UniFiProtectLcdMessageRequest(httpClient, cameraId, getConfig(),
-                getToken(), lcdMessage);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectLcdMessageRequest lcdMessageRequest = new UniFiProtectLcdMessageRequest(httpClient, cameraId,
+                getConfig(), getToken(), lcdMessage);
+        UniFiProtectStatus requestStatus = lcdMessageRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectLcdMessageRequest(httpClient, cameraId, getConfig(), token, lcdMessage);
-                request.sendRequest();
+                lcdMessageRequest = new UniFiProtectLcdMessageRequest(httpClient, cameraId, getConfig(), getToken(),
+                        lcdMessage);
+                requestStatus = lcdMessageRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = lcdMessageRequest.getJsonContent();
         logger.debug("LcdMessage result jsonResult: {}", jsonContent);
     }
 
@@ -767,20 +842,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set LCD, camera field is null: {}", camera);
             return;
         }
-        UniFiProtectSmartDetectRequest request = new UniFiProtectSmartDetectRequest(httpClient, cameraId, getConfig(),
-                getToken(), smartDetectTypes);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectSmartDetectRequest smartDetectRequest = new UniFiProtectSmartDetectRequest(httpClient, cameraId,
+                getConfig(), getToken(), smartDetectTypes);
+        UniFiProtectStatus requestStatus = smartDetectRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectSmartDetectRequest(httpClient, cameraId, getConfig(), token,
+                smartDetectRequest = new UniFiProtectSmartDetectRequest(httpClient, cameraId, getConfig(), getToken(),
                         smartDetectTypes);
-                request.sendRequest();
+                requestStatus = smartDetectRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = smartDetectRequest.getJsonContent();
         logger.debug("smartDetectTypes result jsonResult: {}", jsonContent);
         camera.setSmartDetectObjectTypes(smartDetectTypes);
     }
@@ -791,19 +873,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set status sounds on, camera has null fields: {}", camera);
             return;
         }
-        UniFiProtectStatusSoundsRequest request = new UniFiProtectStatusSoundsRequest(httpClient, cameraId, getConfig(),
-                getToken(), enabled);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectStatusSoundsRequest statusSoundRequest = new UniFiProtectStatusSoundsRequest(httpClient, cameraId,
+                getConfig(), getToken(), enabled);
+        UniFiProtectStatus requestStatus = statusSoundRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectStatusSoundsRequest(httpClient, cameraId, getConfig(), token, enabled);
-                request.sendRequest();
+                statusSoundRequest = new UniFiProtectStatusSoundsRequest(httpClient, cameraId, getConfig(), getToken(),
+                        enabled);
+                requestStatus = statusSoundRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = statusSoundRequest.getJsonContent();
         logger.debug("StatusSounds on result jsonResult: {}", jsonContent);
     }
 
@@ -813,19 +903,27 @@ public class UniFiProtectNvr {
             logger.error("Failed to set chime, camera has null fields: {}", camera);
             return;
         }
-        UniFiProtectChimeRequest request = new UniFiProtectChimeRequest(httpClient, cameraId, getConfig(), getToken(),
-                chimeDuration);
-        if (request.sendRequest().getStatus() == SendStatus.INVALID_TOKEN) {
+        UniFiProtectChimeRequest chimeDurationRequest = new UniFiProtectChimeRequest(httpClient, cameraId, getConfig(),
+                getToken(), chimeDuration);
+        UniFiProtectStatus requestStatus = chimeDurationRequest.sendRequest();
+        if (requestStatus.badToken()) {
+            logger.debug("Credentials expired, logging in again");
             UniFiProtectStatus status = login(token);
-            if (status.getStatus() == SendStatus.SUCCESS) {
+            if (status.success()) {
                 token = getToken();
-                request = new UniFiProtectChimeRequest(httpClient, cameraId, getConfig(), token, chimeDuration);
-                request.sendRequest();
+                chimeDurationRequest = new UniFiProtectChimeRequest(httpClient, cameraId, getConfig(), getToken(),
+                        chimeDuration);
+                requestStatus = chimeDurationRequest.sendRequest();
             } else {
+                loginFailed();
                 return;
             }
         }
-        String jsonContent = request.getJsonContent();
+        if (!requestStatus.success()) {
+            requestFailedForOtherReasonThan401(requestStatus);
+            return;
+        }
+        String jsonContent = chimeDurationRequest.getJsonContent();
         logger.debug("ChimeRequest on result jsonResult: {}", jsonContent);
     }
 }

@@ -45,6 +45,14 @@ public class UniFiProtectStatus {
     private final SendStatus status;
     private final @Nullable Exception exception;
 
+    public boolean success() {
+        return status == SendStatus.SUCCESS;
+    }
+
+    public boolean badToken() {
+        return status == SendStatus.TOKEN_MISSING || status == SendStatus.INVALID_TOKEN;
+    }
+
     public UniFiProtectStatus(SendStatus status) {
         this.status = status;
         this.exception = null;
