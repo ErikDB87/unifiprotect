@@ -146,7 +146,7 @@ public class UniFiProtectEventWebSocket {
                         }
                         x++;
                     }
-                    if (!notAlreadyInList) {
+                    if (notAlreadyInList) {
                         modelKeys.add(modelKey);
                     }
                 }
