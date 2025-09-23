@@ -16,6 +16,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketFrame;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.api.extensions.Frame;
+import org.eclipse.jetty.websocket.api.extensions.Frame.Type;
 import org.openhab.binding.unifiprotect.internal.model.json.UniFiProtectJsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,8 +87,28 @@ public class UniFiProtectEventWebSocket {
         logger.debug("Got msg: {}", msg);
     }
 
+    private void frameLogger(Frame frame) {
+        byte[] mask = frame.getMask();
+        byte opCode = frame.getOpCode();
+        ByteBuffer payload = frame.getPayload();
+        Type type = frame.getType();
+        boolean isFin = frame.isFin();
+        boolean isRsv1 = frame.isRsv1();
+        boolean isRsv2 = frame.isRsv2();
+        boolean isRsv3 = frame.isRsv3();
+        logger.debug("Frame - mask : {)", mask);
+        logger.debug("Frame - opCode : {)", opCode);
+        logger.debug("Frame - payload : {)", payload);
+        logger.debug("Frame - type : {)", type);
+        logger.debug("Frame - isFin : {)", isFin);
+        logger.debug("Frame - isRsv1 : {)", isRsv1);
+        logger.debug("Frame - isRsv2 : {)", isRsv2);
+        logger.debug("Frame - isRsv3 : {)", isRsv3);
+    }
+
     @OnWebSocketFrame
     public synchronized void onFrame(Frame frame) {
+        frameLogger(frame);
         if (session == null) {
             return;
         }

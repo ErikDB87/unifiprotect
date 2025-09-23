@@ -507,6 +507,7 @@ public class UniFiProtectBaseThingHandler extends BaseThingHandler {
     public synchronized void handleEventDownload(String type, String eventId, UniFiProtectCamera cam) {
         UniFiProtectEvent event = getNvr().getEventFromId(eventId);
         if (event == null) {
+            logger.debug("refreshEvents() in handleEventDownload - eventID = {}", eventId);
             getNvr().refreshEvents();
             event = getNvr().getEventFromId(eventId);
             if (event == null) {
@@ -542,6 +543,7 @@ public class UniFiProtectBaseThingHandler extends BaseThingHandler {
             Supplier<CompletableFuture<UniFiProtectCamera>> asyncTask = () -> CompletableFuture.completedFuture(camera);
             future = UniFiProtectUtil.scheduleAsync(scheduler, asyncTask, delay, TimeUnit.SECONDS);
             future.thenAccept(cam -> {
+                logger.debug("refreshEvents() in handleHeatmapEvent: future - eventID = {}", eventId);
                 getNvr().refreshEvents();
                 handleEventDownload(HEAT_DL, eventId, camera);
             });

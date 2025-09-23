@@ -516,6 +516,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             logger.info("Socket closed: {}", evt.getNewValue());
             return;
         }
+        logger.debug("refreshEvents() in propertyChange - evt = {}", evt);
         getNvr().refreshEvents();
         UniFiProtectAction action = (UniFiProtectAction) evt.getNewValue();
         UniFiProtectEvent event = getNvr().getEventFromId(action.getId());
@@ -524,6 +525,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
         } else {
             logger.debug("Failed to find event attempt 1 from id: {}", action.getId());
             // Sometimes event is asked for too quickly, refresh again
+            logger.debug("refreshEvents(evt, action.getId()) in propertyChange - event = {}", event);
             refreshEvents(evt, action.getId());
         }
     }
@@ -533,6 +535,7 @@ public class UniFiProtectNvrThingHandler extends BaseBridgeHandler implements Pr
             refreshFuture = UniFiProtectUtil.delayedExecution(REFRESH_DELAY, TimeUnit.SECONDS);
             refreshFuture.thenAccept(s -> {
                 try {
+                    logger.debug("refreshEvents() in refreshEvents(PropertyChangeEvent evt, String id) - id = {}", id);
                     getNvr().refreshEvents();
                     UniFiProtectEvent event = getNvr().getEventFromId(id);
                     if (event != null) {
