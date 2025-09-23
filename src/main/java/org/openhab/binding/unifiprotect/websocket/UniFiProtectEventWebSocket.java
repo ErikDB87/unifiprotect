@@ -96,14 +96,14 @@ public class UniFiProtectEventWebSocket {
         boolean isRsv1 = frame.isRsv1();
         boolean isRsv2 = frame.isRsv2();
         boolean isRsv3 = frame.isRsv3();
-        logger.debug("Frame - mask : {)", mask);
-        logger.debug("Frame - opCode : {)", opCode);
-        logger.debug("Frame - payload : {)", payload);
-        logger.debug("Frame - type : {)", type);
-        logger.debug("Frame - isFin : {)", isFin);
-        logger.debug("Frame - isRsv1 : {)", isRsv1);
-        logger.debug("Frame - isRsv2 : {)", isRsv2);
-        logger.debug("Frame - isRsv3 : {)", isRsv3);
+        logger.debug("Frame - mask : {})", mask);
+        logger.debug("Frame - opCode : {})", opCode);
+        logger.debug("Frame - payload : {})", payload);
+        logger.debug("Frame - type : {})", type);
+        logger.debug("Frame - isFin : {})", isFin);
+        logger.debug("Frame - isRsv1 : {})", isRsv1);
+        logger.debug("Frame - isRsv2 : {})", isRsv2);
+        logger.debug("Frame - isRsv3 : {})", isRsv3);
     }
 
     @OnWebSocketFrame
