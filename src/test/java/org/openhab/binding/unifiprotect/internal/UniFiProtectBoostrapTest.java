@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.unifiprotect.internal;
+package org.openhab.binding.unifiprotectunofficial.internal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,10 +21,10 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.unifiprotect.internal.model.UniFiProtectCameraCache;
-import org.openhab.binding.unifiprotect.internal.model.UniFiProtectNvr;
-import org.openhab.binding.unifiprotect.internal.model.UniFiProtectStatus;
-import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
+import org.openhab.binding.unifiprotectunofficial.internal.model.UniFiProtectCameraCache;
+import org.openhab.binding.unifiprotectunofficial.internal.model.UniFiProtectNvr;
+import org.openhab.binding.unifiprotectunofficial.internal.model.UniFiProtectStatus;
+import org.openhab.binding.unifiprotectunofficial.internal.thing.UniFiProtectNvrThingConfig;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -37,7 +37,7 @@ import ch.qos.logback.classic.Logger;
  */
 @NonNullByDefault
 public class UniFiProtectBoostrapTest {
-    private static final Logger logger = (Logger) LoggerFactory.getLogger("org.openhab.binding.unifiprotect.internal");
+    private static final Logger logger = (Logger) LoggerFactory.getLogger("org.openhab.binding.unifiprotectunofficial.internal");
 
     private UniFiProtectNvrThingConfig config = new UniFiProtectNvrThingConfig();
 

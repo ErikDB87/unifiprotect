@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.unifiprotect.internal;
+package org.openhab.binding.unifiprotectunofficial.internal;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -23,12 +23,12 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openhab.binding.unifiprotect.internal.event.UniFiProtectEventManager;
-import org.openhab.binding.unifiprotect.internal.model.UniFiProtectCameraCache;
-import org.openhab.binding.unifiprotect.internal.model.UniFiProtectNvr;
-import org.openhab.binding.unifiprotect.internal.model.json.UniFiProtectEvent;
-import org.openhab.binding.unifiprotect.internal.thing.UniFiProtectNvrThingConfig;
-import org.openhab.binding.unifiprotect.internal.types.UniFiProtectCamera;
+import org.openhab.binding.unifiprotectunofficial.internal.event.UniFiProtectEventManager;
+import org.openhab.binding.unifiprotectunofficial.internal.model.UniFiProtectCameraCache;
+import org.openhab.binding.unifiprotectunofficial.internal.model.UniFiProtectNvr;
+import org.openhab.binding.unifiprotectunofficial.internal.model.json.UniFiProtectEvent;
+import org.openhab.binding.unifiprotectunofficial.internal.thing.UniFiProtectNvrThingConfig;
+import org.openhab.binding.unifiprotectunofficial.internal.types.UniFiProtectCamera;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;

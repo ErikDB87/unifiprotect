@@ -14,8 +14,8 @@
     <enforcer.skip>true</enforcer.skip>
   </properties>
 
-  <artifactId>org.openhab.binding.unifiprotect</artifactId>
-  <name>openHAB Add-ons :: Bundles :: UniFi Protect Binding</name>
+  <artifactId>org.openhab.binding.unifiprotectunofficial</artifactId>
+  <name>openHAB Add-ons :: Bundles :: UniFi Protect Binding Unofficial</name>
   <dependencies>
     <dependency>
       <version>1.2.9</version>
