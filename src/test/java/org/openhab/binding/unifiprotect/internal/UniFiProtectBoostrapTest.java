@@ -37,7 +37,8 @@ import ch.qos.logback.classic.Logger;
  */
 @NonNullByDefault
 public class UniFiProtectBoostrapTest {
-    private static final Logger logger = (Logger) LoggerFactory.getLogger("org.openhab.binding.unifiprotectunofficial.internal");
+    private static final Logger logger = (Logger) LoggerFactory
+            .getLogger("org.openhab.binding.unifiprotectunofficial.internal");
 
     private UniFiProtectNvrThingConfig config = new UniFiProtectNvrThingConfig();
 
